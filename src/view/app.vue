@@ -22,7 +22,7 @@ export default {
       setmonth: new Date().getMonth()+1,
       setday: new Date().getDate(),
       val:[20,30,20,100,0],
-      valX:['7','8','9','10','11'],
+      valX:['8','9','10','11','12'],
       ringstyle:[{color:'#9eb0ff',title:'加油',monny:60000},{color:'#77b2fc',title:'修车',monny:10000},{color:'#ffc184',title:'护理',monny:10000},{color:'#98e39f',title:'保养',monny:50000},{color:'#95d1ff',title:'哎哎',monny:70000}]
     }
   },
