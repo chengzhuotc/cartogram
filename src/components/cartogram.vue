@@ -1,381 +1,620 @@
 <template>
-	  <canvas :id="id"></canvas>
+	<canvas :id="id" @click="handleChartClick($event)"></canvas>
 </template>
+<style type="text/css" media="screen">
+	@media only screen and (min-width : 360px) {
+		html {
+			font-size: 19px;
+		}
+	}
+	@media only screen and (min-width : 375px) {
+		html {
+			font-size: 20px;
+		}
+	}
+	@media only screen and (min-width : 414px) {
+		html {
+			font-size: 22px;
+		}
+	}
+	@media only screen and (min-width : 600px) {
+		html {
+			font-size: 32px;
+		}
+	}
+	@media only screen and (min-width : 768px) {
+		html {
+			font-size: 41px;
+		}
+	}	
+</style>
 <script type = "text/ecmascript-6">
 
 	export default {
 		data() {
-				return {
-					process: 0,
-					nowAngle: 0,
-					oldAngle: null,
-					ringStyleNum: 0,
-					ringStyleaAllNum: 0,
-					num: 0,
-					ringData: [],
-					ctx: null,
-					index: null,
-					h: null,
-					w: null,
-					lineProcess: 0,
-					lineStyleNum: 0,
-					intervalW: 70,
-					lineNum: 0,
-					OldMotionH: 0,
-					OldMotionW: 0,
-          isDrawDashedLine:false
+			return {
+				process: 0,
+				nowAngle: 0,
+				oldAngle: null,
+				ringStyleNum: 0,
+				ringStyleaAllNum: 0,
+				num: 0,
+				ringData: [],
+				ctx: null,
+				index: null,
+				h: null,
+				w: null,
+				lineProcess: 0,
+				lineStyleNum: 0,
+				intervalW: 70,
+				lineNum: 0,
+				OldMotionH: 0,
+				OldMotionW: 0,
+				isDrawDashedLine:false,
+				ringAmountClick:false
+			}
+		},
+		props: ['width', 'height', 'maxH', 'maxW', 'val', 'valX', 'id', 'type', 'r', 'ringW', 'title', 'ringstyle', 'name'],
+		created(){
+			var lastTime = 0;
+			var vendors = ["webkit", "moz"];
+			for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+				window.requestAnimationFrame = window[vendors[x] + "RequestAnimationFrame"];
+				window.cancelAnimationFrame = window[vendors[x] + "CancelAnimationFrame"] || window[vendors[x] + "CancelRequestAnimationFrame"];
+			}
+			if (!window.requestAnimationFrame) {
+				window.requestAnimationFrame = function(callback, element) {
+					var currTime = new Date().getTime();
+					var timeToCall = Math.max(0, 16.7 - (currTime - lastTime));
+					var id = window.setTimeout(function() {
+					    callback(currTime + timeToCall);
+					}, timeToCall);
+					lastTime = currTime + timeToCall;
+					return id;
+				};
+			}
+			if (!window.cancelAnimationFrame) {
+				window.cancelAnimationFrame = function(id) {
+					clearTimeout(id);
+				};
+			}
+		},
+		methods: {		
+			coordinateX({
+				ctx,
+				length=5,
+				w=500,
+				h=500,
+				color='#333',
+				lineWidth=1,
+				marginLeft=0,
+				marginTop=0,
+				drawDashedLine=false,
+				drawDashedLineWidth=13,
+				text
+			}){
+				let line = (h-marginTop)/(length-1);
+				for (var i = 0; i < length; i++) {
+					switch(drawDashedLine){
+						case true:
+							ctx.beginPath();
+							ctx.strokeStyle = '#e3ecf2';
+							this.drawDashedLine(ctx, marginLeft, h-line*i, w, h-line*i, drawDashedLineWidth);
+							ctx.stroke();
+						break;
+						default:
+							ctx.lineWidth = lineWidth;
+							ctx.strokeStyle = color;
+							ctx.moveTo(marginLeft, h-line*i);
+							ctx.lineTo(w, h-line*i);
+							ctx.stroke();
+						break;
+					}
+					if(text){
+						// 字
+						let Text = text.isCount ? text.Text/(length-1)*i : text.fillText
+
+						this.setText({
+							ctx:ctx,
+							text:Text,
+							color:text.color,
+							font:text.font,
+							textAlign:text.textAlign || 'right',
+							x:marginLeft-(text.marginright||0),
+							y:h-line*i
+						})
+					}
 				}
 			},
-			props: ['width', 'height', 'maxH', 'maxW', 'val', 'valX', 'id', 'type', 'r', 'ringW', 'title', 'ringstyle', 'name'],
-			methods: {
-				drawDashedLine(context, x1, y1, x2, y2, dashLength) {
-					dashLength = dashLength === undefined ? 5 : dashLength;
-					let deltaX = x2 - x1;
-					let deltaY = y2 - y1;
-					let numDashes = Math.floor(
-						Math.sqrt(deltaX * deltaX + deltaY * deltaY) / dashLength);
-					for (let i = 0; i < numDashes; ++i) {
-						context[i % 2 === 0 ? 'moveTo' : 'lineTo']
-							(x1 + (deltaX / numDashes) * i, y1 + (deltaY / numDashes) * i);
+		drawDashedLine(context, x1, y1, x2, y2, dashLength) {
+			dashLength = dashLength === undefined ? 5 : dashLength;
+			let deltaX = x2 - x1;
+			let deltaY = y2 - y1;
+			let numDashes = Math.floor(
+				Math.sqrt(deltaX * deltaX + deltaY * deltaY) / dashLength);
+				for (let i=0; i < numDashes; ++i) {
+				context[ i % 2 === 0 ? 'moveTo' : 'lineTo' ]
+				 (x1 + (deltaX / numDashes) * i, y1 + (deltaY / numDashes) * i);
+				}
+			},
+			setText({
+				ctx,
+				text='字呢？？',
+				font='1.4rem Arial',
+				color='#333',
+				textAlign='center',
+				textBaseline='middle',
+				x=10,
+				y=10
+			}){
+				ctx.beginPath();
+				ctx.font = font;
+				ctx.fillStyle =color;
+				ctx.textAlign = textAlign;
+				ctx.save();
+				ctx.textBaseline = textBaseline;
+				ctx.fillText(text, x, y);
+				ctx.stroke();
+				ctx.restore();
+			},
+			LineCoordinateX(cartogram) {
+				cartogram.beginPath();
+				cartogram.moveTo(0, this.h);
+				cartogram.lineTo(this.width * 2, this.h);
+				cartogram.lineWidth = 1;
+				cartogram.strokeStyle = '#d2e4ff';
+				cartogram.stroke();
+				this.coordinateX({
+					ctx:cartogram,
+					length:4,
+					w:this.width * 2 - 30,
+					h:this.h,
+					color:'#e3ecf2',
+					marginLeft:30,
+					drawDashedLine:true
+				})
+			},
+			LineCoordinateY(cartogram) {
+				// let grad = cartogram.createLinearGradient(0, 0, this.width, 0),
+				let grad = cartogram.createLinearGradient(0, 0, 0, this.height),
+					intervalW = this.intervalW / 2;
+				cartogram.lineWidth = 2;
+				cartogram.beginPath();
+				cartogram.lineWidth = 2;
+				grad.addColorStop(1, '#f7fcff');
+				grad.addColorStop(0, '#b7daff ');
+				cartogram.fillStyle = grad;
+				cartogram.strokeStyle = '#d8e7ff';
+				this.lineAnimate(cartogram, grad)
+			},
+			lineAnimate(cartogram, grad) {
+				let h = this.h;
+				let w = this.w;
+				let val = this.val;
+				let valLen = val.length;
+				let lineW = this.w / (valLen - 1);
+				let lineH = this.h / this.maxH;
+				let intervalW = this.intervalW
+				if (this.lineNum == 0) {
+					this.speedLine(cartogram, intervalW, val[this.lineNum] * lineH, h, grad)
+				} else {
+					this.speedLine(cartogram, this.lineNum * lineW + intervalW, val[this.lineNum] * lineH, h, grad)
+				}
+			},
+			speedLine(cartogram, motionW, motionH, h, grad) {
+				requestAnimationFrame(() => {
+					let OldMotionH = this.OldMotionH,OldMotionW = this.OldMotionW, lineProcess = this.lineProcess
+					if (lineProcess == 0) {
+						cartogram.moveTo(0, h);
+					} else if (lineProcess == this.lineStyleNum) {
+						cartogram.moveTo(lineProcess, h);
+						cartogram.lineTo(lineProcess, h - OldMotionH);
 					}
-				},
-				LineCoordinateX(cartogram) {
-					cartogram.beginPath();
-					cartogram.moveTo(0, this.h);
-					cartogram.lineTo(this.width * 2, this.h);
-					cartogram.lineWidth = 1;
-					cartogram.strokeStyle = '#d2e4ff';
-					cartogram.stroke();
-
-					let coordinateLine = this.h / 3;
-					for (var i = 0; i < 3; i++) {
-						cartogram.beginPath();
-						cartogram.strokeStyle = '#e3ecf2';
-						this.drawDashedLine(cartogram, 30, i * coordinateLine, this.width * 2 - 30, i * coordinateLine, 13);
-						cartogram.stroke();
-					}
-				},
-				LineCoordinateY(cartogram) {
-					let grad = cartogram.createLinearGradient(0, 0, this.width, 0),
-						intervalW = this.intervalW / 2;
-					cartogram.lineWidth = 2;
-					cartogram.beginPath();
-					cartogram.lineWidth = 2;
-					grad.addColorStop(0, '#dbe7f6');
-					grad.addColorStop(1, '#f1f5fc');
-					cartogram.fillStyle = grad;
-					cartogram.strokeStyle = '#d8e7ff';
-					this.lineAnimate(cartogram, grad)
-				},
-				speedLine(cartogram, motionW, motionH, h, grad) {
-					requestAnimationFrame(() => {
-            let OldMotionH = this.OldMotionH,OldMotionW = this.OldMotionW, lineProcess = this.lineProcess
-						if (lineProcess == 0) {
-							cartogram.moveTo(0, h);
-						} else if (lineProcess == this.lineStyleNum) {
-							cartogram.moveTo(lineProcess, h);
-							cartogram.lineTo(lineProcess, h - OldMotionH);
-						}
-						if (motionW > lineProcess) {
-							cartogram.fillStyle = grad;
-							this.lineProcess = Math.min(this.lineProcess + 30, motionW)
-							let lineProcess = this.lineProcess,
-                  newH
-							if (this.lineNum == 0) {
-								newH = motionH / motionW * (lineProcess - OldMotionW)
-							} else {
-								newH = (motionH - OldMotionH) / (motionW - OldMotionW) * (lineProcess - OldMotionW)
-							}
-							cartogram.stroke();
-							cartogram.lineTo(lineProcess, h - OldMotionH - newH);
-							cartogram.lineTo(lineProcess, h);
-							this.OldMotionH = OldMotionH + newH
-							this.OldMotionW = lineProcess
-							this.lineStyleNum = this.lineProcess
-							this.speedLine(cartogram, motionW, motionH, h, grad)
-							cartogram.fill();
+					if (motionW > lineProcess) {
+						cartogram.fillStyle = grad;
+						this.lineProcess = Math.min(this.lineProcess + 60, motionW)
+						let lineProcess = this.lineProcess,newH
+						if (this.lineNum == 0) {
+							newH = motionH / motionW * (lineProcess - OldMotionW)
 						} else {
-							this.lineNum++;
-							this.OldMotionH = motionH
-							this.OldMotionW = motionW
-							if (this.lineNum < this.val.length) {
-								this.lineAnimate(cartogram)
-							} else {
-                if(this.isDrawDashedLine){
-                  cartogram.beginPath();
-                  cartogram.strokeStyle = "#fff";
-                  let lineW = this.w / (this.val.length - 1);
-                  let lineH = this.h / this.maxH;
-                  let dashedW = (this.lineNum-2) * lineW+this.intervalW;
-                  let dashedH =  h-this.val[this.lineNum-2]*lineH;
-                  cartogram.lineTo(dashedW,dashedH);
-                  cartogram.lineTo(motionW,h-motionH);
-                  cartogram.stroke();   
-                  cartogram.beginPath();
-                  cartogram.strokeStyle = '#e3ecf2';
-                  this.drawDashedLine(cartogram,dashedW,dashedH,motionW,h-motionH,13);
-                  cartogram.stroke();
-                }
-								for (var i = 0; i < this.val.length; i++) {
-									this.lineData(cartogram, i)
-								}
+							newH = (motionH - OldMotionH) / (motionW - OldMotionW) * (lineProcess - OldMotionW)
+						}
+						cartogram.lineTo(lineProcess, h - OldMotionH - newH);
+						cartogram.stroke();
+						cartogram.lineTo(lineProcess, h);
+						this.OldMotionH = OldMotionH + newH
+						this.OldMotionW = lineProcess
+						this.lineStyleNum = this.lineProcess
+						this.speedLine(cartogram, motionW, motionH, h, grad)
+						cartogram.fill();
+					} else {
+						this.lineNum++;
+						this.OldMotionH = motionH
+						this.OldMotionW = motionW
+						if (this.lineNum < this.val.length) {
+							this.lineAnimate(cartogram)
+						} else {
+							if(this.isDrawDashedLine){
+								cartogram.beginPath();
+								cartogram.strokeStyle = "#fff";
+								let lineW = this.w / (this.val.length - 1);
+								let lineH = this.h / this.maxH;
+								let dashedW = (this.lineNum-2) * lineW+this.intervalW;
+								let dashedH =  h-this.val[this.lineNum-2]*lineH;
+								cartogram.lineTo(dashedW,dashedH);
+								cartogram.lineTo(motionW,h-motionH);
+								cartogram.stroke();   
+								cartogram.beginPath();
+								cartogram.strokeStyle = '#e3ecf2';
+								this.drawDashedLine(cartogram,dashedW,dashedH,motionW,h-motionH,13);
+								cartogram.stroke();
+							}
+							for (var i = 0; i < this.val.length; i++) {
+								this.lineData(cartogram, i)
 							}
 						}
+					}
+				})
+			},
+			lineData(cartogram, i) {
+				let h = this.height * 2 - 160;
+				let w = this.width * 2 - this.intervalW * 2;
+				let val = this.val;
+				let valLen = val.length;
+				let lineW = w / (valLen - 1);
+				let lineH = h / this.maxH;
+				let that = this;
+				let acreage;
+				let intervalW = this.intervalW
+					// 圆
+				cartogram.beginPath();
+				if (i == valLen - 2) {
+					cartogram.arc(i * lineW + intervalW, h - val[i] * lineH, 10, 0, 2 * Math.PI);
+				} else if (i == valLen) {
+					cartogram.arc(i * lineW + intervalW, h, 6, 0, 2 * Math.PI);
+				} else {
+					cartogram.arc(i * lineW + intervalW, h - val[i] * lineH, 6, 0, 2 * Math.PI);
+				}
+				if (i == valLen - 2) {
+					cartogram.strokeStyle = '#ffe3ad';
+					cartogram.fillStyle = "#ff7916";
+					cartogram.lineWidth = 2;
+					cartogram.fill();
+					cartogram.stroke();
+				} else {
+					cartogram.strokeStyle = '#cae7ff';
+					cartogram.fillStyle = "#fff";
+					cartogram.fill();
+					cartogram.stroke();
+				}
+				// 字
+
+				let fillStyle
+				if (i == valLen - 2) {
+					fillStyle = "#ff7916";
+				} else {
+					fillStyle = "#a5a5a5";
+				}
+				let textVal = i !== valLen && this.val[i] || ''
+
+				this.setText({
+					ctx:cartogram,
+					text:textVal,
+					color:fillStyle,
+					font:"1.2rem Arial",
+					textBaseline:'middle bottom',
+					x:i * lineW + intervalW,
+					y:h - val[i] * lineH - 10
+				})
+			},
+			Line(cartogram) {
+				let h = this.height * 2 - 160;
+				let w = this.width * 2 - this.intervalW * 2;
+				let val = this.val;
+				let valLen = val.length;
+				let lineW = w / (valLen - 1);
+				let lineH = h / this.maxH;
+				let maxYear = new Date().getFullYear();
+				let maxMonth = new Date().getMonth()+1;
+				let that = this;
+				let acreage;
+				let intervalW = this.intervalW
+
+				this.h = h;
+				this.w = w;
+				this.setText({
+					ctx:cartogram,
+					text:this.name,
+					textAlign:'left',
+					color:'#666',
+					textBaseline:'middle bottom',
+					x:35,
+					y:50
+				})
+				cartogram.translate(0, 90);
+				this.LineCoordinateX(cartogram)
+				this.LineCoordinateY(cartogram)
+				for (var i = 0; i < valLen; i++) {
+					this.setText({
+						ctx:cartogram,
+						text:this.valX[i],
+						color: i == valLen - 2 && "#333" || "#afafaf",
+						font:i == valLen - 2 && "1.6rem Arial" || "1.4rem Arial",
+						x:i * lineW + intervalW,
+						y:h + 45
 					})
-				},
-				lineAnimate(cartogram, grad) {
-					let h = this.h;
-					let w = this.w;
-					let val = this.val;
-					let valLen = val.length;
-					let lineW = this.w / (valLen - 1);
-					let lineH = this.h / this.maxH;
-					let intervalW = this.intervalW
-					if (this.lineNum == 0) {
-						this.speedLine(cartogram, intervalW, val[this.lineNum] * lineH, h, grad)
-					} else {
-						this.speedLine(cartogram, this.lineNum * lineW + intervalW, val[this.lineNum] * lineH, h, grad)
-					}
-				},
-				lineData(cartogram, i) {
-					let h = this.height * 2 - 160;
-					let w = this.width * 2 - this.intervalW * 2;
-					let val = this.val;
-					let valLen = val.length;
-					let lineW = w / (valLen - 1);
-					let lineH = h / this.maxH;
-					let that = this;
-					let acreage;
-					let intervalW = this.intervalW
-						// 圆
-					cartogram.beginPath();
-					if (i == valLen - 2) {
-						cartogram.arc(i * lineW + intervalW, h - val[i] * lineH, 10, 0, 2 * Math.PI);
-					} else if (i == valLen) {
-						cartogram.arc(i * lineW + intervalW, h, 6, 0, 2 * Math.PI);
-					} else {
-						cartogram.arc(i * lineW + intervalW, h - val[i] * lineH, 6, 0, 2 * Math.PI);
-					}
-					if (i == valLen - 2) {
-						cartogram.strokeStyle = '#ffe3ad';
-						cartogram.fillStyle = "#ff7916";
-						cartogram.lineWidth = 2;
-						cartogram.fill();
-						cartogram.stroke();
-					} else {
-						cartogram.strokeStyle = '#cae7ff';
-						cartogram.fillStyle = "#fff";
-						cartogram.fill();
-						cartogram.stroke();
-					}
-					// 字
-					cartogram.beginPath();
-					cartogram.font = "24px Arial";
-					if (i == valLen - 2) {
-						cartogram.fillStyle = "#ff7916";
-					} else {
-						cartogram.fillStyle = "#a5a5a5";
-					}
-					cartogram.textAlign = "center";
-					let textVal = i !== valLen && this.val[i] || ''
-					cartogram.fillText(textVal, i * lineW + intervalW, h - val[i] * lineH - 15);
-					cartogram.stroke();
 
-				},
-				Line(cartogram) {
-					let h = this.height * 2 - 160;
-					let w = this.width * 2 - this.intervalW * 2;
-					let val = this.val;
-					let valLen = val.length;
-					let lineW = w / (valLen - 1);
-					let lineH = h / this.maxH;
-          let maxYear = new Date().getFullYear();
-          let maxMonth = new Date().getMonth()+1;
-					let that = this;
-					let acreage;
-					let intervalW = this.intervalW
-
-					this.h = h;
-					this.w = w;
-					cartogram.beginPath();
-					cartogram.fillStyle = "#666"
-					cartogram.font = "24px Arial";
-					cartogram.fillText(this.name, 35, 50);
-					cartogram.stroke();
-					cartogram.translate(0, 90);
-          // if(maxYear > val[3].year){
-          //   this.isDrawDashedLine= true 
-          // }else{
-          //   // console.log(parseInt(val[4]))
-          //   this.isDrawDashedLine = parseInt(val[4].month) > maxMonth 
-          // }
-          console.log(this.isDrawDashedLine)
-					this.LineCoordinateX(cartogram)
-					this.LineCoordinateY(cartogram)
-					for (var i = 0; i < valLen; i++) {
-						// 下字
-						cartogram.beginPath();
-						cartogram.fillStyle = i == valLen - 2 && "#333" || "#afafaf";
-						cartogram.font = i == valLen - 2 && "32px Arial" || "28px Arial";
-						cartogram.textAlign = "center";
-						cartogram.fillText(this.valX[i], i * lineW + intervalW, h + 45);
-						cartogram.stroke();
+				}
+			},
+			textCenter(text, num) {
+				this.setText({
+					ctx:this.ctx,
+					text:'￥' + num,
+					color:'#95d1ff',
+					x:0,
+					y:-15
+				})
+				this.ctx.fillText(text, 0, 15);
+			},
+			removeAnimate(ctx,num,bg,r,ringW,isStrokeStyle){
+				num = Math.min(num,100)
+				this.process =  num;
+				this.speedRing(ctx,r,this.oldAngle,Math.PI * (1.5 + 2 * num / 100 ),bg,false,isStrokeStyle) 
+				this.insideRing(ctx,r,ringW)
+				ctx.strokeStyle = isStrokeStyle ||'#fff';
+				this.ringStyle(ctx,r,ringW,isStrokeStyle)
+			},
+			animate(ctx, num, bg, r, ringW, isStrokeStyle) {
+				let that = this;
+				requestAnimationFrame(function (){ 
+					num = Math.min(num,100)
+					that.process =  that.process < num &&  Math.min(that.process + 2,100) || that.process ;
+					that.speedRing(ctx,r,that.oldAngle,Math.PI * (1.5 + 2 * that.process / 100 ),bg,false,isStrokeStyle) 
+					that.insideRing(ctx,r,ringW)
+					if (that.process < num) {  
+						that.animate(ctx, num,bg,r,ringW,isStrokeStyle);  
 					}
-				},
-				textCenter(text, num) {
-					this.ctx.font = "bold 28px Arial";
-					this.ctx.fillStyle = '#95d1ff';
-					this.ctx.textAlign = 'center';
-					this.ctx.textBaseline = 'middle';
-					this.ctx.fillText('￥' + num, 0, -15);
-					this.ctx.font = "bold 28px Arial";
-					this.ctx.fillStyle = '#95d1ff';
-					this.ctx.textAlign = 'center';
-					this.ctx.textBaseline = 'middle';
-					this.ctx.fillText(text, 0, 15);
-				},
-				animate(ctx, num, bg, r, ringW, isStrokeStyle) {
-					let that = this;
-					requestAnimationFrame(function() {
-						that.process = Math.min(that.process + 1, 100);
-						num = Math.min(num, 100);
-						that.speedRing(ctx, r, that.oldAngle, Math.PI * (1.5 + 2 * that.process / 100), bg, false, isStrokeStyle)
-						that.insideRing(ctx, r, ringW)
-						if (that.process < num) {
-							that.animate(ctx, num, bg, r, ringW, isStrokeStyle);
-						} else {
-							ctx.strokeStyle = isStrokeStyle || '#fff';
-							that.process = that.num
-							that.ringStyle(ctx, r, ringW, isStrokeStyle)
-						}
-					});
-				},
-				insideRing(ctx, r, ringW) {
-					// 画内填充圆   
-					ctx.beginPath();
-					ctx.arc(0, 0, r - ringW, 0, Math.PI * 2);
-					ctx.fillStyle = '#fff';
+					else{
+						ctx.strokeStyle = isStrokeStyle ||'#fff';
+						that.process = that.num
+						that.ringStyle(ctx,r,ringW,isStrokeStyle)
+					}  
+				});
+
+			},
+			insideRing(ctx, r, ringW) {
+				// 画内填充圆   
+				ctx.beginPath();
+				ctx.arc(0, 0, r - ringW, 0, Math.PI * 2);
+				ctx.fillStyle = '#fff';
+				ctx.closePath();
+				ctx.fill();
+			},
+			speedRing(ctx, r, startAngle, endAngle, color, cur, isStrokeStyle) {
+				// console.log(color)
+				// 画进度环 
+				ctx.beginPath();
+				ctx.moveTo(0, 0);
+				ctx.lineWidth = 2;
+				ctx.strokeStyle = (cur || isStrokeStyle!=undefined) && color || '#fff';
+				ctx.fillStyle = color;
+				if (cur) {
+					ctx.save();
+					ctx.shadowBlur = 20;
+					ctx.shadowColor = "rgb(135, 135, 135)";
+					ctx.arc(0, 0, r, startAngle, endAngle);
+					ctx.fill();
+					ctx.restore();
+				}else {
+					ctx.arc(0, 0, r, startAngle, endAngle);
 					ctx.closePath();
 					ctx.fill();
-				},
-				speedRing(ctx, r, startAngle, endAngle, color, cur, isStrokeStyle) {
-					// 画进度环 
-					ctx.beginPath();
-					ctx.moveTo(0, 0);
-					ctx.lineWidth = 2;
-					ctx.strokeStyle = (cur || isStrokeStyle) && color || '#fff';
-					ctx.fillStyle = color;
-					if (cur) {
-						ctx.save();
-						ctx.shadowBlur = 20;
-						ctx.shadowColor = "rgb(135, 135, 135)";
-						ctx.arc(0, 0, r, startAngle, endAngle);
-						ctx.fill();
-						ctx.restore();
+					ctx.stroke();
+				}
+			},
+			ringStyle(cartogram, r, ringW, isStrokeStyle) {
+				if (this.ringstyle[this.ringStyleNum]) {
+					if (this.ringStyleNum == 0) {
+						this.oldAngle = Math.PI * 1.5
 					} else {
-						ctx.arc(0, 0, r, startAngle, endAngle);
-						ctx.closePath();
-						ctx.fill();
-						ctx.stroke();
+						this.oldAngle = Math.PI * (1.5 + 2 * this.process / 100)
 					}
-				},
-				ringStyle(cartogram, r, ringW, isStrokeStyle) {
-					if (this.ringstyle[this.ringStyleNum]) {
-						if (this.ringStyleNum == 0) {
-							this.oldAngle = Math.PI * 1.5
-						} else {
-							this.oldAngle = Math.PI * (1.5 + 2 * this.process / 100)
-						}
-						this.num = this.num + this.ringstyle[this.ringStyleNum].monny / this.ringStyleaAllNum * 100;
-						this.ringData.push({
-							startAngle: this.oldAngle,
-							endAngle: Math.PI * (1.5 + 2 * this.num / 100),
-							color: this.ringstyle[this.ringStyleNum].color,
-							r: r
-						})
-						this.ctx = cartogram;
-						this.animate(cartogram, this.num, this.ringstyle[this.ringStyleNum].color, r, ringW, isStrokeStyle)
-					} else {
-						isStrokeStyle && this.textCenter(this.ringstyle[0].title, this.ringstyle[0].monny)
+					this.num = this.num + this.ringstyle[this.ringStyleNum].monny / this.ringStyleaAllNum * 100;
+					this.ringData.push({
+						startAngle: this.oldAngle,
+						endAngle: Math.PI * (1.5 + 2 * this.num / 100),
+						color: this.ringstyle[this.ringStyleNum].color,
+						r: r
+					})
+					this.ctx = cartogram;
+					if(this.ringstyle[this.ringStyleNum].monny != 0 ){
+						this.ringStyleNum++;
+						this.animate(cartogram, this.num,this.ringstyle[this.ringStyleNum-1].color,r,ringW,isStrokeStyle) 
+					}else{
+						this.ringStyleNum++;
+						this.ringStyle(cartogram,r,ringW,isStrokeStyle)
 					}
-					this.ringStyleNum++;
-				},
-				ring(cartogram, cavans) {
-					let r = this.r;
-					let ringW = this.ringW;
-					cartogram.translate(this.width, this.height);
-					for (var k in this.ringstyle) {
-						this.ringStyleaAllNum += this.ringstyle[k].monny;
-					}
+				} else {
+					isStrokeStyle != undefined && this.textCenter(this.ringstyle[0].title, this.ringstyle[0].monny)
+				}
+			},
+			ring(cartogram, cavans) {
+				let r = this.r;
+				let ringW = this.ringW;
+				let ringAmount = []
+				cartogram.translate(this.width, this.height);
 
-					if (this.ringstyle.length > 1) {
-						this.ringStyle(cartogram, r, ringW);
-						cavans.addEventListener('click', this.handleChartClick, false);
-					} else {
-						this.ringStyle(cartogram, r, ringW, true)
+				for (var k = 0; k<this.ringstyle.length; k++) {
+					if(this.ringstyle[k].monny!=0){
+						ringAmount.push(k)
 					}
+					this.ringStyleaAllNum += this.ringstyle[k].monny;
+				}
 
-					// 字
-				},
-				handleChartClick(clickEvent) {
+				if(ringAmount.length>1){
+					this.ringStyle(cartogram,r,ringW);
+					this.ringAmountClick = true
+				}else{
+					this.ringStyle(cartogram,r,ringW,ringAmount[0])
+				}
 
+				// 字
+			},
+			handleChartClick ( clickEvent ) {
+				if(this.ringAmountClick){
 					let chartRadius = this.r / 2;
-					let chartRadiusMin = (this.r - this.ringW) / 2;
-					let mouseX = clickEvent.pageX;
-					let mouseY = clickEvent.layerY;
-					let xFromCentre = mouseX - this.width / 2;
-					let yFromCentre = mouseY - this.height / 2;
-					let distanceFromCentre = Math.sqrt(Math.pow(Math.abs(xFromCentre), 2) + Math.pow(Math.abs(yFromCentre), 2));
-					let chartStartAngle = 2 * Math.PI;
-					if (distanceFromCentre <= chartRadiusMin) {
+					let chartRadiusMin = (this.r-this.ringW) / 2;
+					let mouseX = clickEvent.pageX - clickEvent.srcElement.offsetLeft;
+					let mouseY = clickEvent.pageY - clickEvent.srcElement.offsetTop;
+					let xFromCentre = mouseX - this.width/2;
+					let yFromCentre = mouseY - this.height/2;
+					let distanceFromCentre = Math.sqrt( Math.pow( Math.abs( xFromCentre ), 2 ) + Math.pow( Math.abs( yFromCentre ), 2 ) );
+					let chartStartAngle = 2* Math.PI;
+
+					if(distanceFromCentre <= chartRadiusMin){
 						return false;
-					} else if (distanceFromCentre <= chartRadius) {
-						let clickAngle;
-						if (Math.atan2(yFromCentre, xFromCentre) < -0.5 * Math.PI && Math.atan2(yFromCentre, xFromCentre) > -1 * Math.PI) {
-							// clickAngle = -Math.atan2( yFromCentre, xFromCentre ) + chartStartAngle+.5* Math.PI;  
-							clickAngle = Math.atan2(yFromCentre, xFromCentre) + chartStartAngle * 2;
-						} else {
-							clickAngle = Math.atan2(yFromCentre, xFromCentre) + chartStartAngle;
+					}else if ( distanceFromCentre <= chartRadius ) {
+						let clickAngle; 
+						if(Math.atan2( yFromCentre, xFromCentre ) < -0.5 * Math.PI && Math.atan2( yFromCentre, xFromCentre ) >-1 * Math.PI ){
+							clickAngle =Math.atan2( yFromCentre, xFromCentre ) + chartStartAngle*2;   
+						}else{
+							clickAngle = Math.atan2( yFromCentre, xFromCentre ) + chartStartAngle; 
 						}
-						for (var slice in this.ringData) {
-							if (clickAngle >= this.ringData[slice].startAngle && clickAngle <= this.ringData[slice].endAngle) {
+						for ( var slice in this.ringData ) {
+							if ( clickAngle >= this.ringData[slice].startAngle  && clickAngle <= this.ringData[slice].endAngle ) {
 								this.changeRing(slice)
 							}
 						}
-					} else {
-						this.changeRing()
-					}
-				},
-				changeRing(index) {
-					// 画进度环  
-					this.ctx.clearRect(-this.width, -this.height, this.width * 2, this.height * 2);
-					for (var slice in this.ringData) {
-						if (slice !== index) {
-							this.speedRing(this.ctx, parseInt(this.ringData[slice].r), this.ringData[slice].startAngle, this.ringData[slice].endAngle, this.ringData[slice].color)
-							this.insideRing(this.ctx, this.r, this.ringW);
-
-						}
-					}
-					if (index) {
-						this.speedRing(this.ctx, parseInt(this.ringData[index].r) + 5, this.ringData[index].startAngle - 0.05, this.ringData[index].endAngle + 0.05, this.ringData[index].color, true)
+					}else{	
+						this.changeRing()				
+					} 
+				} 
+			},
+			changeRing(index) {
+				// 画进度环  
+				this.ctx.clearRect(-this.width, -this.height, this.width * 2, this.height * 2);
+				for (var slice in this.ringData) {
+					if (slice !== index) {
+						this.speedRing(this.ctx, parseInt(this.ringData[slice].r), this.ringData[slice].startAngle, this.ringData[slice].endAngle, this.ringData[slice].color)
 						this.insideRing(this.ctx, this.r, this.ringW);
-						this.index = index;
-						this.textCenter(this.ringstyle[index].title, this.ringstyle[index].monny)
-					}
 
+					}
+				}
+				if (index) {
+					this.speedRing(this.ctx, parseInt(this.ringData[index].r) + 5, this.ringData[index].startAngle - 0.05, this.ringData[index].endAngle + 0.05, this.ringData[index].color, true)
+					this.insideRing(this.ctx, this.r, this.ringW);
+					this.index = index;
+					this.textCenter(this.ringstyle[index].title, this.ringstyle[index].monny)
 				}
 
 			},
-			mounted() {
-				let cavans = document.getElementById(this.id);
-				let cartogram = cavans.getContext('2d');
-				cavans.width = this.width * 2;
-				cavans.height = this.height * 2;
-				if (this.type == 'ring') {
-					this.ring(cartogram, cavans)
-				} else {
-					this.Line(cartogram)
+			// maxCoordinate(max){
+//       let newMax = max.toString().split('')
+//       if(parseInt(newMax[1])>4){
+//       	newMax[0]=parseInt(newMax[0])+1;
+//       	newMax[1]="0";
+//       }else{
+//       	newMax[1]="5";
+//       }
+//       	let zero =''
+//         for(var i =0;i<newMax.length-2;i++){
+//             zero=zero+'0'
+//         }
+//         return parseInt(newMax[0]+newMax[1]+zero)
+      	
+			// },
+			barX(cartogram,w,h){
+				let line = (h-100)/2,
+				scale = this.maxH/2,
+				marginLeft = 100
+				this.coordinateX({
+					ctx:cartogram,
+					length:3,
+					w:w,
+					h:h,
+					color:'#f1f1f1',
+					marginLeft:marginLeft,
+					marginTop:100,
+					text:{
+					Text: this.maxH,
+					isCount: true,
+					marginright:10,
+					font: "bold 1.4rem Arial"
+					}
+				})
+			},
+			barY(cartogram,w,h){
+				let intervalX = (w-120)/6,
+				showHeight = (h-100)/this.maxH
+				for (var i = 1; i < 6; i++) {
+					if(i==4){
+						this.barStyle(cartogram,120+i*intervalX, h, this.val[i-1]*showHeight,true)
+					}else{
+						this.barStyle(cartogram,120+i*intervalX, h, this.val[i-1]*showHeight)
+					}
+					this.setText({
+						ctx:cartogram,
+						text:this.valX[i-1],
+						textAlign:'left',
+						x:120+i*intervalX,
+						y:h+40
+					})
 				}
-				let that = this
+			},
+			barStyle(cxt,x, y, h,isCur){
+				CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+					if (w < 2 * r) r = w / 2;
+					if (h < 2 * r) r = h / 2;
+					this.beginPath();
+					this.moveTo(x+r, y);
+					this.arcTo(x+w, y, x+w, y-h, r);
+					this.arcTo(x+w, y-h, x, y-h, r);
+					this.arcTo(x, y-h, x, y, r);
+					this.arcTo(x, y, x+w, y, r);
+					this.closePath();
+					return this;
+				}
+				cxt.lineWidth = 1;
+				cxt.strokeStyle = "#fff";
+				// ff8208
+				cxt.roundRect(x,y,14,h,30).stroke();
+				if(isCur){
+					cxt.save();
+					cxt.fillStyle = "#ff8208";
+					cxt.fill()
+					cxt.restore();
+				}else{
+					cxt.fillStyle = "#67aaf9";
+					cxt.fill()
+				}
+			},
+			bar(cartogram){
+				let h = this.height * 2 - 66,
+					w = this.width * 2
+				this.barX(cartogram,w,h)
+				this.barY(cartogram,w,h)
+				this.setText({
+					ctx:cartogram,
+					text:'万元',
+					color:'#ccc',
+					textAlign:'right',
+					x:100,
+					y:50
+				})
 			}
+		},
+		mounted() {
+			let cavans = document.getElementById(this.id);
+			let cartogram = cavans.getContext('2d');
+			cavans.width = this.width * 2;
+			cavans.height = this.height * 2;
+			if (this.type == 'ring') {
+				this.ring(cartogram, cavans)
+			} else if (this.type =='bar'){
+				this.bar(cartogram)
+			} else {
+				this.Line(cartogram)
+			}
+			let that = this
+		}
 	} </script>
