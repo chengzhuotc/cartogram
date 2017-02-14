@@ -1,33 +1,7 @@
 <template>
 	<canvas :id="id" @click="handleChartClick($event)"></canvas>
 </template>
-<style type="text/css" media="screen">
-	@media only screen and (min-width : 360px) {
-		html {
-			font-size: 19px;
-		}
-	}
-	@media only screen and (min-width : 375px) {
-		html {
-			font-size: 20px;
-		}
-	}
-	@media only screen and (min-width : 414px) {
-		html {
-			font-size: 22px;
-		}
-	}
-	@media only screen and (min-width : 600px) {
-		html {
-			font-size: 32px;
-		}
-	}
-	@media only screen and (min-width : 768px) {
-		html {
-			font-size: 41px;
-		}
-	}	
-</style>
+
 <script type = "text/ecmascript-6">
 
 	export default {
@@ -54,7 +28,7 @@
 				ringAmountClick:false
 			}
 		},
-		props: ['width', 'height', 'maxH', 'maxW', 'val', 'valX', 'id', 'type', 'r', 'ringW', 'title', 'ringstyle', 'name'],
+		props: ['width', 'height', 'maxH', 'maxW', 'val', 'valX', 'id', 'type', 'r', 'ringW', 'title', 'ringstyle', 'name','brokenLine','borderColor','shadowColor','bg','CoordinateYType'],
 		created(){
 			var lastTime = 0;
 			var vendors = ["webkit", "moz"];
@@ -174,17 +148,46 @@
 					drawDashedLine:true
 				})
 			},
+			spotCoordinateXChild(cartogram,i,lineW,level,index,len,globalAlpha){
+					const curLineW = level == 'two' ? i*lineW/len + index*lineW : i*lineW
+					cartogram.save()
+					cartogram.beginPath();
+					cartogram.lineCap="round";		
+					cartogram.moveTo(this.intervalW + curLineW, this.h+19);
+					cartogram.lineTo(this.intervalW + curLineW, this.h+10);
+					cartogram.lineWidth = 4;
+					cartogram.strokeStyle = '#809de0';
+					cartogram.globalAlpha = globalAlpha && globalAlpha || 1;
+					cartogram.stroke();
+					cartogram.restore();
+
+			},
+			spotCoordinateX(cartogram,len=4){
+				for(var i=0 ;i<this.val.length; i++){
+					console.log('cz'+i)
+					this.spotCoordinateXChild(cartogram,i,this.w / (this.val.length - 1))
+					if(i<this.val.length-1){
+						for(var j=0 ;j<len; j++){
+							this.spotCoordinateXChild(cartogram,j,this.w / (this.val.length - 1),'two',i,len,0.2)
+						}
+					}
+				}
+			},
 			LineCoordinateY(cartogram) {
 				// let grad = cartogram.createLinearGradient(0, 0, this.width, 0),
-				let grad = cartogram.createLinearGradient(0, 0, 0, this.height),
-					intervalW = this.intervalW / 2;
-				cartogram.lineWidth = 2;
+					let intervalW = this.intervalW / 2,grad;
 				cartogram.beginPath();
-				cartogram.lineWidth = 2;
-				grad.addColorStop(1, '#f7fcff');
-				grad.addColorStop(0, '#b7daff ');
-				cartogram.fillStyle = grad;
-				cartogram.strokeStyle = '#d8e7ff';
+				cartogram.lineWidth = 6;
+				if(!this.brokenLine){
+					grad = cartogram.createLinearGradient(0, 0, 0, this.height)
+					grad.addColorStop(1, this.bg.split(';')[1] || '#f7fcff');
+					grad.addColorStop(0, this.bg.split(';')[0] || '#b7daff ');
+				}
+				cartogram.strokeStyle =  this.borderColor || '#d8e7ff';
+				if(this.shadowColor){
+					cartogram.shadowBlur = 20;
+					cartogram.shadowColor = this.shadowColor;
+				}
 				this.lineAnimate(cartogram, grad)
 			},
 			lineAnimate(cartogram, grad) {
@@ -199,40 +202,63 @@
 					this.speedLine(cartogram, intervalW, val[this.lineNum] * lineH, h, grad)
 				} else {
 					this.speedLine(cartogram, this.lineNum * lineW + intervalW, val[this.lineNum] * lineH, h, grad)
+
 				}
 			},
 			speedLine(cartogram, motionW, motionH, h, grad) {
+				motionW = motionW || 0
+				motionH = motionH || 0
 				requestAnimationFrame(() => {
 					let OldMotionH = this.OldMotionH,OldMotionW = this.OldMotionW, lineProcess = this.lineProcess
+
+					this.brokenLine && cartogram.beginPath();
 					if (lineProcess == 0) {
+						if(this.brokenLine){
+							cartogram.save();
+							cartogram.strokeStyle = '#ffd2c1';
+						}
 						cartogram.moveTo(0, h);
 					} else if (lineProcess == this.lineStyleNum) {
 						cartogram.moveTo(lineProcess, h);
 						cartogram.lineTo(lineProcess, h - OldMotionH);
+					}else{
+						cartogram.moveTo(lineProcess, h - OldMotionH);
 					}
+					let newH
 					if (motionW > lineProcess) {
-						cartogram.fillStyle = grad;
-						this.lineProcess = Math.min(this.lineProcess + 60, motionW)
-						let lineProcess = this.lineProcess,newH
+						if(grad){
+							cartogram.fillStyle = grad;
+						}
+						this.lineProcess = Math.min(this.lineProcess + 40, motionW)
+						let lineProcess = this.lineProcess
 						if (this.lineNum == 0) {
 							newH = motionH / motionW * (lineProcess - OldMotionW)
 						} else {
 							newH = (motionH - OldMotionH) / (motionW - OldMotionW) * (lineProcess - OldMotionW)
-						}
+						}		
 						cartogram.lineTo(lineProcess, h - OldMotionH - newH);
 						cartogram.stroke();
-						cartogram.lineTo(lineProcess, h);
+						
 						this.OldMotionH = OldMotionH + newH
 						this.OldMotionW = lineProcess
-						this.lineStyleNum = this.lineProcess
+						if(!this.brokenLine){
+							cartogram.lineTo(lineProcess, h);
+						    this.lineStyleNum = this.lineProcess
+						}
 						this.speedLine(cartogram, motionW, motionH, h, grad)
-						cartogram.fill();
+						if(!this.brokenLine){
+							cartogram.fill();
+						}
 					} else {
+						if(this.brokenLine && this.lineNum==0){
+							cartogram.restore();
+						}
 						this.lineNum++;
 						this.OldMotionH = motionH
 						this.OldMotionW = motionW
-						if (this.lineNum < this.val.length) {
+						if (this.lineNum < this.val.length+1) {
 							this.lineAnimate(cartogram)
+							
 						} else {
 							if(this.isDrawDashedLine){
 								cartogram.beginPath();
@@ -250,6 +276,7 @@
 								cartogram.stroke();
 							}
 							for (var i = 0; i < this.val.length; i++) {
+								// 最后加载的动态
 								this.lineData(cartogram, i)
 							}
 						}
@@ -266,26 +293,44 @@
 				let that = this;
 				let acreage;
 				let intervalW = this.intervalW
+				// 线
+
+								
+				cartogram.save()
+				cartogram.beginPath();		
+				cartogram.moveTo(i * lineW + intervalW, h - val[i] * lineH);
+				cartogram.lineTo(i * lineW + intervalW, h );
+				cartogram.lineWidth = 1;
+				cartogram.strokeStyle = '#fff';
+				cartogram.stroke();
+				cartogram.restore();
+
 					// 圆
 				cartogram.beginPath();
 				if (i == valLen - 2) {
-					cartogram.arc(i * lineW + intervalW, h - val[i] * lineH, 10, 0, 2 * Math.PI);
+					cartogram.arc(i * lineW + intervalW, h - val[i] * lineH, 12, 0, 2 * Math.PI);
 				} else if (i == valLen) {
 					cartogram.arc(i * lineW + intervalW, h, 6, 0, 2 * Math.PI);
 				} else {
 					cartogram.arc(i * lineW + intervalW, h - val[i] * lineH, 6, 0, 2 * Math.PI);
 				}
-				if (i == valLen - 2) {
-					cartogram.strokeStyle = '#ffe3ad';
-					cartogram.fillStyle = "#ff7916";
-					cartogram.lineWidth = 2;
-					cartogram.fill();
-					cartogram.stroke();
-				} else {
-					cartogram.strokeStyle = '#cae7ff';
-					cartogram.fillStyle = "#fff";
-					cartogram.fill();
-					cartogram.stroke();
+				if(this.brokenLine){
+						cartogram.fillStyle = "#ff8154";
+						// cartogram.lineWidth = 2;
+						cartogram.fill();
+				}else{
+					if (i == valLen - 2) {
+						// cartogram.strokeStyle = '#ffe3ad';
+						cartogram.fillStyle = "#ff8154";
+						// cartogram.lineWidth = 2;
+						cartogram.fill();
+						// cartogram.stroke();
+					} else {
+						// cartogram.strokeStyle = '#cae7ff';
+						cartogram.fillStyle = "#fff";
+						cartogram.fill();
+						// cartogram.stroke();
+					}
 				}
 				// 字
 
@@ -304,7 +349,7 @@
 					font:"1.2rem Arial",
 					textBaseline:'middle bottom',
 					x:i * lineW + intervalW,
-					y:h - val[i] * lineH - 10
+					y:h - val[i] * lineH - 15
 				})
 			},
 			Line(cartogram) {
@@ -332,8 +377,12 @@
 					y:50
 				})
 				cartogram.translate(0, 90);
-				this.LineCoordinateX(cartogram)
-				this.LineCoordinateY(cartogram)
+				if(this.CoordinateYType=='spot'){
+					this.spotCoordinateX(cartogram)
+				}else{
+					this.LineCoordinateX(cartogram)
+				}
+					this.LineCoordinateY(cartogram)
 				for (var i = 0; i < valLen; i++) {
 					this.setText({
 						ctx:cartogram,

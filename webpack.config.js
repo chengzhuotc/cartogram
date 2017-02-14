@@ -51,7 +51,7 @@ const config = {
       names: ['vendors']
     }),
     new HtmlWebpackPlugin({
-      title: '车消费记录',
+      title: '统计图',
       template: 'src/index.html',
       chunks: ['vendors', 'app'],
       inject: true
