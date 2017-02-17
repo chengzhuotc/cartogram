@@ -175,7 +175,7 @@
 			},
 			LineCoordinateY(cartogram) {
 				// let grad = cartogram.createLinearGradient(0, 0, this.width, 0),
-					let intervalW = this.intervalW / 2,grad;
+				let intervalW = this.intervalW / 2,grad;
 				cartogram.beginPath();
 				cartogram.lineWidth = 6;
 				if(!this.brokenLine){
@@ -209,8 +209,7 @@
 				motionW = motionW || 0
 				motionH = motionH || 0
 				requestAnimationFrame(() => {
-					let OldMotionH = this.OldMotionH,OldMotionW = this.OldMotionW, lineProcess = this.lineProcess
-
+					let OldMotionH = this.OldMotionH,OldMotionW = this.OldMotionW, lineProcess = this.lineProcess,newH
 					this.brokenLine && cartogram.beginPath();
 					if (lineProcess == 0) {
 						if(this.brokenLine){
@@ -223,8 +222,7 @@
 						cartogram.lineTo(lineProcess, h - OldMotionH);
 					}else{
 						cartogram.moveTo(lineProcess, h - OldMotionH);
-					}
-					let newH
+					} 
 					if (motionW > lineProcess) {
 						if(grad){
 							cartogram.fillStyle = grad;
