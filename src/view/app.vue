@@ -4,15 +4,16 @@
 <!-- bg='#e8f0f8;#c6dbfb' -->
 <!-- :brokenLine=true -->
 <!-- DEE7FF－ECF5FE -->
-  <cartogram :width='width' height='240' :val='val' maxH='100' :valX='valX' id="zhe"  name='消费趋势' bg='#DEE7FF;#ECF5FE'  borderColor='#519dff' CoordinateYType="spot"></cartogram>
-  <!-- <cartogram :width='width' height='130' :val='val' maxH='100' :valX='valX' id="ccc"  name='消费趋势'  :brokenLine=true  borderColor="#ff8153" CoordinateYType="spot"></cartogram>
-  <cartogram :width='width' height='100' :val='val' r='100' id="xian" type="ring" ringW='20' title="" :ringstyle='ringstyles'></cartogram> -->
-  <!-- <cartogram :width='width' height='400' :val='val' r='200' id="cz" type="ring" ringW='80' title="" :ringstyle='ringstyle'></cartogram> -->
-  <!-- <cartogram :width='width' height='250' type='bar' id="bar" class="bar" :val='val' maxH='100' :valX="valX"></cartogram> -->
-
-<!--   <round-progress r="100" width="8" :progress="90" bg='#ffe35b'></round-progress>
-  <round-progress r="100" width="8" :progress="50" bg='#1fecff'></round-progress>
-  <indicator :progress="10" width="650"></indicator> -->
+<!-- <cartogram :width='width' height='240' :val='val' maxH='100' :valX='valX' id="zhe"  name='消费趋势' bg='#DEE7FF;#ECF5FE'  borderColor='#519dff' CoordinateYType="spot"></cartogram> -->
+<!-- <cartogram :width='width' height='130' :val='val' maxH='100' :valX='valX' id="ccc"  name='消费趋势'  :brokenLine=true  borderColor="#ff8153" CoordinateYType="spot"></cartogram> -->
+<!-- <cartogram :width='width' height='100' :val='val' r='100' id="xian" type="ring" ringW='20' title="" :ringstyle='ringstyles'></cartogram> -->
+<!-- <cartogram :width='width' height='400' :val='val' r='200' id="cz" type="ring" ringW='80' title="" :ringstyle='ringstyle'></cartogram> -->
+<!-- <cartogram :width='width' height='250' type='bar' id="bar" class="bar" :val='val' maxH='100' :valX="valX"></cartogram> -->
+<!--  bottomBg="#eaedf0" startBg='#ff0000' style="gradual"-->
+<round-progress d="208" width="22" :progress="100" bg='#ffe35b' bottomBg="#eaedf0" startBg='#ff0000' style="gradual" endBg="#fff" textSize="60" textColor="#666"></round-progress>
+  <!-- <round-progress r="100" width="8" :progress="100" bg='#ffe35b' ></round-progress> -->
+<!-- <round-progress r="50" width="8" :progress="60" bg='#1fecff'></round-progress> -->
+<!-- <indicator :progress="38" width="500" name="sjsjjsj"></indicator> -->
 
 </div>
 </template>
@@ -22,7 +23,7 @@
   padding: 0
 }
   canvas{
-    width: 100%;
+    width: 100px;
     /*background: rgba(226, 231, 235, 0.17);*/
   }
 </style>
@@ -38,7 +39,7 @@ export default {
       setyear: new Date().getFullYear(),
       setmonth: new Date().getMonth()+1,
       setday: new Date().getDate(),
-      val:[77,66,88,77,4.89],
+      val:[10,66,60,10,4.89],
       // val:[5.58,5.34,5.1,4.97,4.89],
       valX:['7','8','9','10','11'],
       ringstyle:[{color:'#9eb0ff',title:'加油',monny:60000},{color:'#77b2fc',title:'修车',monny:10000},{color:'#ffc184',title:'护理',monny:10000},{color:'#98e39f',title:'保养',monny:50000},{color:'#95d1ff',title:'哎哎',monny:70000}],

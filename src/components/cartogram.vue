@@ -189,6 +189,7 @@
 					cartogram.shadowColor = this.shadowColor;
 				}
 				this.lineAnimate(cartogram, grad)
+
 			},
 			lineAnimate(cartogram, grad) {
 				let h = this.h;
@@ -205,48 +206,85 @@
 
 				}
 			},
+			countH(oldW,oldH,newW,newH){
+				let h=newH-oldH,w = newW-oldW
+				if(h!=0){
+					return 3*Math.sqrt( Math.pow(w, 2 ) + Math.pow( h, 2 ) )/w
+				}else if(h==0){
+					return newH-3
+				}
+			},
 			speedLine(cartogram, motionW, motionH, h, grad) {
 				motionW = motionW || 0
 				motionH = motionH || 0
 				requestAnimationFrame(() => {
+					  cartogram.beginPath();
 					let OldMotionH = this.OldMotionH,OldMotionW = this.OldMotionW, lineProcess = this.lineProcess,newH
-					this.brokenLine && cartogram.beginPath();
+
+						if(grad){
+							cartogram.fillStyle = grad;
+						}
 					if (lineProcess == 0) {
 						if(this.brokenLine){
-							cartogram.save();
+              cartogram.save();
 							cartogram.strokeStyle = '#ffd2c1';
 						}
 						cartogram.moveTo(0, h);
 					} else if (lineProcess == this.lineStyleNum) {
-						cartogram.moveTo(lineProcess, h);
-						cartogram.lineTo(lineProcess, h - OldMotionH);
+						cartogram.moveTo(lineProcess,h);
+						cartogram.lineTo(lineProcess,h - OldMotionH + this.countH(OldMotionW,OldMotionH,motionW,motionH));
 					}else{
 						cartogram.moveTo(lineProcess, h - OldMotionH);
 					} 
 					if (motionW > lineProcess) {
-						if(grad){
-							cartogram.fillStyle = grad;
-						}
 						this.lineProcess = Math.min(this.lineProcess + 40, motionW)
-						let lineProcess = this.lineProcess
 						if (this.lineNum == 0) {
-							newH = motionH / motionW * (lineProcess - OldMotionW)
+							newH = motionH / motionW * (this.lineProcess - OldMotionW)
 						} else {
-							newH = (motionH - OldMotionH) / (motionW - OldMotionW) * (lineProcess - OldMotionW)
+							newH = (motionH - OldMotionH) / (motionW - OldMotionW) * (this.lineProcess - OldMotionW)
 						}		
-						cartogram.lineTo(lineProcess, h - OldMotionH - newH);
-						cartogram.stroke();
+						cartogram.lineTo(this.lineProcess, h - OldMotionH - newH);
+					
+						// cartogram.save();
+						// cartogram.shadowBlur = 7;
+						// cartogram.shadowOffsetX = 0;
+						// cartogram.shadowOffsetY = 3;
+						// cartogram.shadowColor = "rgba(106,99,255,0.50)";
 						
+						// cartogram.restore();
+							
+						// 
 						this.OldMotionH = OldMotionH + newH
-						this.OldMotionW = lineProcess
+						this.OldMotionW = this.lineProcess
 						if(!this.brokenLine){
-							cartogram.lineTo(lineProcess, h);
+								cartogram.lineTo(this.lineProcess, h);
 						    this.lineStyleNum = this.lineProcess
+						}else{
+							cartogram.stroke();
 						}
-						this.speedLine(cartogram, motionW, motionH, h, grad)
 						if(!this.brokenLine){
 							cartogram.fill();
+							cartogram.restore();
+							cartogram.beginPath();
+							cartogram.save();
+							// cartogram.globalAlpha = 0.5;
+							if (lineProcess == 0) {
+								if(this.brokenLine){
+									cartogram.save();
+									cartogram.strokeStyle = '#ffd2c1';
+								}
+								cartogram.moveTo(0, h);
+							} else if (lineProcess == this.lineStyleNum) {
+								cartogram.moveTo(lineProcess, h - OldMotionH);
+							}else{
+								cartogram.moveTo(lineProcess, h - OldMotionH);
+							}
+							cartogram.lineTo(this.lineProcess, h - OldMotionH - newH);
+							cartogram.stroke();
+							cartogram.restore();
+
 						}
+						this.speedLine(cartogram, motionW, motionH, h, grad)
 					} else {
 						if(this.brokenLine && this.lineNum==0){
 							cartogram.restore();
@@ -292,7 +330,7 @@
 				let acreage;
 				let intervalW = this.intervalW
 				// 线
-
+			if(!this.brokenLine){
 								
 				cartogram.save()
 				cartogram.beginPath();		
@@ -302,6 +340,7 @@
 				cartogram.strokeStyle = '#fff';
 				cartogram.stroke();
 				cartogram.restore();
+			}
 
 					// 圆
 				cartogram.beginPath();

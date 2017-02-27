@@ -9,7 +9,7 @@
 <script type = "text/ecmascript-6">
 
   export default {
-    props:["r",'width',"progress",'bg'],
+    props:["r",'width',"progress",'bg','name'],
     created() {
 
       var lastTime = 0;
@@ -155,7 +155,7 @@
         ctx.fillStyle ='#fff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('粤B888PA', center, height/2+120);
+        ctx.fillText(this.name, center, height/2+120);
         ctx.stroke();
       }
       let init = (num) =>{
