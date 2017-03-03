@@ -4,7 +4,7 @@
 <script type = "text/ecmascript-6">
 
   export default {
-    props:["d",'width',"progress",'bg','bottomBg','startBg','endBg','style','textSize','textColor'],
+    props:["d",'width',"progress",'bottomBg','startBg','endBg','style','textSize','textColor'],
     created() {
 
       var lastTime = 0;

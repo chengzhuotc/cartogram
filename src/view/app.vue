@@ -4,13 +4,16 @@
 <!-- bg='#e8f0f8;#c6dbfb' -->
 <!-- :brokenLine=true -->
 <!-- DEE7FF－ECF5FE -->
-<!-- <cartogram :width='width' height='240' :val='val' maxH='100' :valX='valX' id="zhe"  name='消费趋势' bg='#DEE7FF;#ECF5FE'  borderColor='#519dff' CoordinateYType="spot"></cartogram> -->
-<!-- <cartogram :width='width' height='130' :val='val' maxH='100' :valX='valX' id="ccc"  name='消费趋势'  :brokenLine=true  borderColor="#ff8153" CoordinateYType="spot"></cartogram> -->
+<cartogram :width='width' height='240' :val='val' maxH='100' :valX='valX' id="zhe"  name='消费趋势' bg='#DEE7FF;#ECF5FE'  borderColor='#519dff' CoordinateYType="spot"></cartogram>
+<cartogram :width='width' height='130' :val='val' maxH='100' :valX='valX' id="ccc"  name='消费趋势'  :brokenLine=true  borderColor="#ff8153" CoordinateYType="spot"></cartogram>
 <!-- <cartogram :width='width' height='100' :val='val' r='100' id="xian" type="ring" ringW='20' title="" :ringstyle='ringstyles'></cartogram> -->
 <!-- <cartogram :width='width' height='400' :val='val' r='200' id="cz" type="ring" ringW='80' title="" :ringstyle='ringstyle'></cartogram> -->
 <!-- <cartogram :width='width' height='250' type='bar' id="bar" class="bar" :val='val' maxH='100' :valX="valX"></cartogram> -->
 <!--  bottomBg="#eaedf0" startBg='#ff0000' style="gradual"-->
-<round-progress d="208" width="22" :progress="100" bg='#ffe35b' bottomBg="#eaedf0" startBg='#ff0000' style="gradual" endBg="#fff" textSize="60" textColor="#666"></round-progress>
+<!--  bg='#ffe35b' -->
+<!--  bg='#ffe35b' -->
+<!-- <round-progress d="208" width="22" :progress="90" bottomBg="#fff" startBg='#ff0000' style="gradual" endBg="#fff" textSize="60" textColor="#666"></round-progress> -->
+<!-- <round-progress d="208" width="22" :progress="40" bottomBg="#E2E6EA" startBg='#ff0000' style="gradual" endBg="#fff" textSize="60" textColor="#666"></round-progress> -->
   <!-- <round-progress r="100" width="8" :progress="100" bg='#ffe35b' ></round-progress> -->
 <!-- <round-progress r="50" width="8" :progress="60" bg='#1fecff'></round-progress> -->
 <!-- <indicator :progress="38" width="500" name="sjsjjsj"></indicator> -->
@@ -23,7 +26,7 @@
   padding: 0
 }
   canvas{
-    width: 100px;
+    width: 100%;
     /*background: rgba(226, 231, 235, 0.17);*/
   }
 </style>
